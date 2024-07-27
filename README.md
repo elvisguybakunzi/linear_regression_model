@@ -31,3 +31,7 @@ A FastAPI-based API was created to make predictions using a linear regression mo
 - **URL:** [API_ENDPOINT_URL](https://linear-regression-model-b17p.onrender.com)
 - **Path:** `/predict`
 - **Method:** `POST`
+
+## Task 3: Flutter App
+
+This flutter app has two page a welcome page and Prediction page which has test field for the user to input and a prediction button to predict the score and a filed which has the predicted value.
