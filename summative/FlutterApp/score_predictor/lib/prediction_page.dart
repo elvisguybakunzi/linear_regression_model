@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
 
 class PredictionPage extends StatefulWidget {
   @override
@@ -12,16 +13,65 @@ class _PredictionPageState extends State<PredictionPage> {
   final TextEditingController _samplePapersController = TextEditingController();
 
   String _result = '';
+  final ApiService _apiService = ApiService();
 
-  void _predictScore() {
-    // Add your prediction logic here
+  Future<void> _predictScore() async {
+    final double hoursStudied = double.tryParse(_hoursStudiedController.text) ?? 0;
+    final double previousScores = double.tryParse(_previousScoresController.text) ?? 0;
+    final double sleepHours = double.tryParse(_sleepHoursController.text) ?? 0;
+    final int samplePapers = int.tryParse(_samplePapersController.text) ?? 0;
+
+    // Validate input values
+    if (_hoursStudiedController.text.isEmpty ||
+        _previousScoresController.text.isEmpty ||
+        _sleepHoursController.text.isEmpty ||
+        _samplePapersController.text.isEmpty) {
+      setState(() {
+        _result = 'Please fill in all fields.';
+      });
+      return;
+    }
+
+    // Range validation
+    if (hoursStudied < 1 || hoursStudied > 10) {
+      setState(() {
+        _result = 'Hours Studied must be between 1 and 10.';
+      });
+      return;
+    }
+    if (previousScores < 0 || previousScores > 100) {
+      setState(() {
+        _result = 'Previous Scores must be between 0 and 100.';
+      });
+      return;
+    }
+    if (sleepHours < 4 || sleepHours > 10) {
+      setState(() {
+        _result = 'Sleep Hours must be between 4 and 10.';
+      });
+      return;
+    }
+    if (samplePapers < 0 || samplePapers > 10) {
+      setState(() {
+        _result = 'Sample Question Papers Practiced must be between 0 and 10.';
+      });
+      return;
+    }
+
+    // Call the API service to get prediction
+    final predictionResult = await _apiService.getPrediction(
+      hoursStudied: hoursStudied,
+      previousScore: previousScores,
+      sleepHours: sleepHours,
+      samplePapers: samplePapers,
+    );
+
     setState(() {
-      // Example logic for result
-      _result = 'Predicted Score: 90';
+      _result = predictionResult;
     });
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -50,22 +100,35 @@ class _PredictionPageState extends State<PredictionPage> {
                 ],
               ),
             ),
-            // SizedBox(height: 20),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: _predictScore,
-              child: Text('Predict'),
+              child: Text(
+                'Predict',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                minimumSize: Size(double.infinity, 50), // Makes the button wider
               ),
             ),
             SizedBox(height: 20),
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.green.shade100,
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.shade100,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.green.shade300, width: 2),
+              ),
               child: Text(
                 _result,
                 textAlign: TextAlign.center,
@@ -96,6 +159,7 @@ class _PredictionPageState extends State<PredictionPage> {
           Expanded(
             child: TextField(
               controller: controller,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: label,
                 border: OutlineInputBorder(
